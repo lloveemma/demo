@@ -11,7 +11,7 @@ public class Pyramid2 {
 
 	public static void main(String[] args) {
 		System.out.print("Heigth? ");
-		scanner = new Scanner(System.in);
+    	scanner = new Scanner(System.in);
 		int height = scanner.nextInt();
 		scanner.close();
 		int row = 0;
