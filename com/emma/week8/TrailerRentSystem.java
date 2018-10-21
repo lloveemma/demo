@@ -131,7 +131,7 @@ public class TrailerRentSystem {
             if ("y".equals(yorn) || "n".equals(yorn)) {
                 return yorn;
             } else {
-                System.out.println("Invalid input, try again!");
+                System.out.print("Only y or n is accepted, try again (y/n):");
             }
         }
     }
