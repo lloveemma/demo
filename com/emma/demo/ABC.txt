@@ -1,0 +1,230 @@
+import java.util.Arrays;
+import java.util.Random;
+import java.util.Scanner;
+
+public class Demo {
+    // 定义并初始化整形数组（根据实际情况调整为其他类型的，如double，float，char等）
+    private int[] numbers = { 1, 4, 3, 2, 5 };
+    // 定义一个长度为6（根据实际情况改大小）的字符串数组，一般肯定会用到数组存放东西
+    private String[] names = new String[6];
+    // 根据实际情况看是否要定义其他数组，比如说有几个玩家，几个不同类型的事物，有几个长度就是几
+    // 辅助判断当前进度
+    private boolean[] flags = new boolean[names.length];
+
+    // 定义一个标记，boolean型，用于标记程序是否结束，默认为没有结束
+    private boolean end = false;
+    // 用于获取用户输入，肯定需要，上来先写上
+    private Scanner scanner;
+
+    public static void main(String[] args) {
+        // 上来二话不说，先写个调用的方法，符合你们教学的场景
+        new Demo().run();
+    }
+
+    // 运行方法，可以提供给外部调用，所以一般定义为public
+    public void run() {
+        // 真正的实现逻辑，可以根据实际情况调整，一般为以下几个套路
+
+        // 步骤1，一般都是无限循环目录，直到输入特定字符退出
+        while (!end) {// 没有结束（end为false），就一直循环，直到天荒地老
+            // 步骤2，先来个展示目录，一个应用或者游戏，总要让用户看到东西才好选择
+            showMenu();
+            // 获取用户输入，可以定义几个类型的，一个字符串的，一个数字的，或者其他类型的如double
+            String userInput = getStringInput();
+            if ("1".equals(userInput)) {
+                // 遍历数组，并打印到控制台，一般不用单独写方法，根据实际情况来
+                print("打印一个数组：");
+                printArray(numbers);
+
+                // 动态初始化数组
+                int[] array = new int[20];
+                initArray(array);
+                // 打印
+                print("打乱前：");
+                printArray(array);
+
+                // 打乱数组
+                shuffle(array);
+
+                print("打乱后：");
+                printArray(array);
+
+                // 合并数组
+                int[] a = { 1, 2, 3 };
+                int[] b = { 4, 5, 6 };
+                int[] c = mergeArray(a, b);
+                printArray(c);
+                // 排序数组 默认升序
+                Arrays.sort(numbers);
+                // 排序后
+                print("排序：");
+                printArray(numbers);
+                // 数组取最大值或最小值
+
+                int max = numbers[numbers.length - 1];
+                int min = numbers[0];
+                print("最大值：" + max);
+                print("最小值：" + min);
+
+                // 倒序数组
+                int[] r = reverseArray(numbers);
+                print("倒序：");
+                printArray(r);
+                // 查找值是否在指定数组存在
+                int n = 3;
+                // 返回索引位置
+                int x = findInArray(n, numbers);
+                if (x != -1) {
+                    print(n + "在数组 numbers中存在，位置为：" + x);
+                } else {
+                    print(n + "在数组 numbers中不存在!");
+                }
+            } else if ("2".equals(userInput)) {
+                // 根据题目具体实现
+                method2();
+            } else if ("3".equals(userInput)) {
+                method3();
+            } else if ("9".equals(userInput)) {
+                // 退出了，那就结束循环吧,两种都行，一种是给结束符赋值为true，一种break； 不用全写
+                end = true;
+                break;
+            } else {// 不在有效值内，给个提示，继续输入吧
+                print("请输入有效的值!");
+            }
+        }
+    }
+
+    // 我时选择3选项时的方法，具体实现根据要求来
+    private void method3() {
+        // 任性的打印几个空行而已，没实际作用
+        for (int i = 0; i < 3; i++) {
+            System.out.println();
+        }
+
+        print("不要选择3啊，没啥用，给你点提示，你可以选1， 可能会有点用，反正选我没用！");
+
+        // 任性的打印几个空行而已，没实际作用
+        for (int i = 0; i < 3; i++) {
+            System.out.println();
+        }
+    }
+
+    // 我是选择2选项时的方法，具体实现根据要求来
+    private void method2() {
+        print("选了2你就能看到这个！我就是表明我存在的，具体实现,根据实际情况写");
+        if (Math.random() < 0.1) {
+            end = true;
+            print("你运气不错，随机数小于0.1时才能碰到，结束游戏！实际情况不是这样哦！！！");
+        }
+    }
+
+    // 查找元素是否存在, 如果有重复不保证返回哪一个
+    private int findInArray(int n, int[] array) {
+        int result = -1;
+        // 下面这个方法基于数组已经排序的情况,所以注释了，看情况用
+        // result = Arrays.binarySearch(array, n);
+
+        // 自己实现，找到一个就返回，重复的不管
+        for (int i = 0; i < array.length; i++) {
+            if (n == array[i]) {
+                result = i;
+                break;
+            }
+        }
+        return result;
+    }
+
+    // 倒序数组
+    private int[] reverseArray(int[] array) {
+        int[] result = new int[array.length];
+        int max_index = array.length - 1;
+        // 倒序，max_index-i就是【0 到 长度-1】
+        for (int i = max_index; i >= 0; i--) {
+            result[max_index - i] = array[i];
+        }
+        return result;
+    }
+
+    // 动态初始化，一般针对数值类型（integer, double, float）
+    private void initArray(int[] array) {
+        // 这里就用上随机数了
+        Random random = new Random();
+        for (int i = 0; i < array.length; i++) {
+            // 这个值随意
+            array[i] = random.nextInt(10000);
+        }
+    }
+
+    // 打乱一个数组
+    public void shuffle(int[] array) {
+        // 就是将数组任意位置的元素交换
+        Random random = new Random();
+        // 打乱 1000次，这个次数随意，太少的话意义不大
+        for (int i = 0; i < 1000; i++) {
+            int idx1 = random.nextInt(array.length);
+            int idx2 = random.nextInt(array.length);
+            // 借助一个临时变量来交换 例如要交换 1和2， 那就将 1赋值给变量，1 = 2， 2=变量
+            int temp = array[idx1];
+            array[idx1] = array[idx2];
+            array[idx2] = temp;
+        }
+    }
+
+    // 带返回值 其他类型也类似,不考虑数组为null的情况
+    private int[] mergeArray(int[] a, int[] b) {
+        int[] result = new int[a.length + b.length];
+        for (int i = 0; i < a.length; i++) {
+            result[i] = a[i];
+        }
+        for (int i = 0; i < b.length; i++) {
+            result[a.length + i] = b[i];
+        }
+        return result;
+    }
+
+    // 打印数组
+    private void printArray(int[] array) {
+        for (int i = 0; i < array.length; i++) {
+            System.out.print(array[i]);
+            if (i != array.length - 1) {
+                System.out.print(",");
+            } else {
+                System.out.println();
+            }
+        }
+    }
+
+    /**
+     * 展示目录，不用返回值，一般上来先把题目里要展示的目录（字体不一样的内容）先放这里，准没错
+     */
+    private void showMenu() {
+        // 啥也不讲究，先来几个输出内容
+        System.out.println("****************************************** ");
+        System.out.println("* XX 游戏 ");
+        System.out.println("****************************************** ");
+        System.out.println("* 1) 简单难度 ");
+        System.out.println("* 2) 复杂难度 ");
+        System.out.println("* 3) 查看得分 ");
+        System.out.println("* 9) 退出游戏 ");
+        System.out.println("****************************************** ");
+        // 这里根据实际情况看看要不要换行（用户输入的内容是否另起一行，这个不用要，随意）
+        System.out.print("请选择: ");
+
+    }
+
+    /**
+     * 获取输入
+     * 
+     * @return input string
+     */
+    private String getStringInput() {
+        scanner = new Scanner(System.in);
+        String str = scanner.nextLine();
+        return str;
+    }
+
+    // 为了少打一些 System.out.println,单独定义一个方法
+    private void print(String msg) {
+        System.out.println(msg);
+    }
+}
