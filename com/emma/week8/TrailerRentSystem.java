@@ -52,7 +52,8 @@ public class TrailerRentSystem {
             System.out.println("  No rental records.");
         }
         int small_left = smallTrailers.length - small_count;
-        System.out.println("There are " + small_left + " out of " + smallTrailers.length + " small trailers still available. ");
+        System.out.println(
+                "There are " + small_left + " out of " + smallTrailers.length + " small trailers still available. ");
 
         System.out.println("Rented large trailers:");
         int large_count = 0;
@@ -66,15 +67,52 @@ public class TrailerRentSystem {
             System.out.println("  No rental records.");
         }
         int large_left = largeTrailers.length - large_count;
-        System.out.println("There are " + large_left + " out of " + largeTrailers.length + " large trailers still available. ");
+        System.out.println(
+                "There are " + large_left + " out of " + largeTrailers.length + " large trailers still available. ");
     }
 
     /**
      * rent a trailer
-     * @param type 1: small, 2: large
+     * 
+     * @param type
+     *            1: small, 2: large
      */
     private void rental(int type) {
-        if (!checkAvailable(type)) {
+        boolean keyizu = checkAvailable(type); // 可以租
+        if (keyizu) {
+            String[] names = type == 1 ? small_renter_names : large_renter_names;
+            boolean[] flags = type == 1 ? small_rental_flags : large_rental_flags;
+            int weight = type == 1 ? small_weight : large_weight;
+
+            System.out.print("What is the last name of the customer?");
+            String name = getStringInput();
+            if (type == 2) {
+                System.out.println("Is the driver in possession of an E-type drivers license (y/n)? ");
+                String yorn = getChooseInput();
+                if ("n".equals(yorn)) {
+                    System.out.println(
+                            "Unfortunately, a large trailer cannot be rented without a E-type drivers license. ");
+                }
+            }
+            System.out.print("What is the weight of the load (in kg)?");
+            scanner = new Scanner(System.in);
+            double input_weight = scanner.nextDouble();
+            if (input_weight > weight) {
+                double exceed = input_weight - weight;
+                System.out.println("Warning! The maximum load (" + weight + " kg) is exceeded by " + exceed + " kg! ");
+            }
+            System.out.print("Are you sure you want to rent the trailer (y/n)? ");
+            String yorn = getChooseInput();
+            if ("y".equals(yorn)) {
+                for (int i = 0; i < flags.length; i++) {
+                    if (flags[i]) {
+                        flags[i] = false;
+                        names[i] = name;
+                        break;
+                    }
+                }
+            }
+        } else {// 不可以租
             if (type == 1) {
                 System.out.println("Unfortunately, there are no small trailers available!");
             } else {
@@ -85,44 +123,13 @@ public class TrailerRentSystem {
                     rental(1);
                 }
             }
-            return;
         }
 
-        String[] names = type == 1 ? small_renter_names : large_renter_names;
-        boolean[] flags = type == 1 ? small_rental_flags : large_rental_flags;
-        int weight = type == 1 ? small_weight : large_weight;
-
-        System.out.print("What is the last name of the customer?");
-        String name = getStringInput();
-        if (type == 2) {
-            System.out.println("Is the driver in possession of an E-type drivers license (y/n)? ");
-            String yorn = getChooseInput();
-            if ("n".equals(yorn)) {
-                System.out.println("Unfortunately, a large trailer cannot be rented without a E-type drivers license. ");
-            }
-        }
-        System.out.print("What is the weight of the load (in kg)?");
-        scanner = new Scanner(System.in);
-        double input_weight = scanner.nextDouble();
-        if (input_weight > weight) {
-            double exceed = input_weight - weight;
-            System.out.println("Warning! The maximum load (" + weight + " kg) is exceeded by " + exceed + " kg! ");
-        }
-        System.out.print("Are you sure you want to rent the trailer (y/n)? ");
-        String yorn = getChooseInput();
-        if ("y".equals(yorn)) {
-            for (int i = 0; i < flags.length; i++) {
-                if (flags[i]) {
-                    flags[i] = false;
-                    names[i] = name;
-                    break;
-                }
-            }
-        }
     }
 
     /**
      * get choose input
+     * 
      * @return "y" or "n"
      */
     private String getChooseInput() {
@@ -138,6 +145,7 @@ public class TrailerRentSystem {
 
     /**
      * get user input
+     * 
      * @return input string
      */
     private String getStringInput() {
@@ -147,7 +155,8 @@ public class TrailerRentSystem {
     }
 
     /**
-     * @param type 1: small, 2: large
+     * @param type
+     *            1: small, 2: large
      * @return boolean available
      */
     private boolean checkAvailable(int type) {
