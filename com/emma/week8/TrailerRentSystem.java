@@ -78,7 +78,7 @@ public class TrailerRentSystem {
      *            1: small, 2: large
      */
     private void rental(int type) {
-        boolean keyizu = checkAvailable(type); // ¿ÉÒÔ×â
+        boolean keyizu = checkAvailable(type); // å¯ä»¥ç§Ÿ
         if (keyizu) {
             String[] names = type == 1 ? small_renter_names : large_renter_names;
             boolean[] flags = type == 1 ? small_rental_flags : large_rental_flags;
@@ -112,7 +112,7 @@ public class TrailerRentSystem {
                     }
                 }
             }
-        } else {// ²»¿ÉÒÔ×â
+        } else {// ä¸å¯ä»¥ç§Ÿ
             if (type == 1) {
                 System.out.println("Unfortunately, there are no small trailers available!");
             } else {
