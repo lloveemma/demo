@@ -1,0 +1,350 @@
+import java.util.Scanner;
+import java.util.Random;
+
+public class Monopoly {
+    // 初始化地块，所有值均为A0 - available 空地 第二位为建筑代码，依次为 0，1，2，3 如果位置1
+    // 为玩家1的建筑，则用玩家代码+建筑代码表示 如X1，O2
+    private String[] boxes = { "A0", "A0", "A0", "A0", "A0", "A0", "A0", "A0", "A0" };
+    // 初始化建筑名称, 从小到大
+    private String[] buildings = { "Free plot", "House", "Valli", "Hotel" };
+    // 初始化建筑费用, -1 顶级，无法升级
+    private int[] upgrade_fees = { 50, 100, 150, -1 };
+    // 初始化收租费用
+    private int[] rent_fees = { 0, 25, 75, 150 };
+    // 初始化玩家位置，约定位置用 0-8代替，初始值，位置1（0）
+    private int player1_pos = 0;
+    private int player2_pos = 0;
+    // 初始化玩家资产 1000块
+    private int player1_amount = 1000;
+    private int player2_amount = 1000;
+    // 游戏结束标志，默认false
+    private boolean gameOver = false;
+    // 用于获取用户输入，肯定需要，上来先写上
+    private Scanner scanner;
+
+    public static void main(String[] args) {
+        new Monopoly().run();
+    }
+
+    public void run() {
+        // 展示菜单
+        showMenu();
+        while (!gameOver) {
+            // 约定玩家代码， 玩家1 用 X 表示，玩家2 用 O 表示
+            // 开始前先判断游戏是否有人胜出
+            if (checkWin()) {
+                break;
+            }
+            play1();// 玩家1 开始
+            // 开始前先判断游戏是否有人胜出
+            if (checkWin()) {
+                break;
+            }
+            play2();// 玩家2 开始
+        }
+    }
+
+    // 展示菜单
+    private void showMenu() {
+        System.out.println("Let’s play Monopoly! ");
+    }
+
+    // 展示游戏板
+    private void showBoxes() {
+        for (int i = 0; i < boxes.length; i++) {
+            String box = boxes[i];
+            String mark = box.substring(0, 1);// 取第一位
+            int code = Integer.parseInt(box.substring(1, 2)); // 取第二位
+            String building = buildings[code];
+            if ("A".equals(mark)) {
+                System.out.print(" Plot " + (i + 1) + ": Available ");
+            } else if ("X".equals(mark)) { // 玩家1拥有
+                System.out.print(" Plot " + (i + 1) + ": " + building + " – Player 1 ");
+            } else if ("O".equals(mark)) { // 玩家2拥有
+                System.out.print(" Plot " + (i + 1) + ": " + building + " – Player 2 ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    // 玩家1进行游戏
+    private void play1() {
+        // 展示游戏板
+        showBoxes();
+        // 展示位置
+        drawPostions();
+        // 展示余额
+        drawBalance();
+        // 扔色子
+        int steps = die();
+
+        // 更新玩家位置
+        int new_pos = player1_pos + steps;
+        player1_pos = new_pos % 9;
+
+        // 输出色子点数和移动到的位置
+        System.out.println("Player 1 throws the die... " + steps + "! ");
+        System.out.println("Player 1 moves to plot " + (player1_pos + 1));
+
+        // 再次经过起点 金额加100，并更新当前位置
+        if (new_pos > 8) {
+            player1_amount += 100; // 增加100
+            System.out.println("Player 1 passed “start” and receives $100!");
+        }
+
+        // 判断地块标志，空地，对手的建筑，自己的建筑
+        String box = boxes[player1_pos];
+        // 取第一位 代表地块归属者 A 空地，X玩家1的地块 O玩家2的地块
+        String mark = String.valueOf(box.charAt(0));
+        // 取第二位,代表建筑物编号0 空地，1 house，2 valli 3 Hotel
+        // char转换为String，然后再转换成Integer
+        int code = Integer.parseInt(String.valueOf(box.charAt(1)));
+        // 当前建筑物
+        String building = buildings[code];
+        // 升级费用
+        int upgrade_fee = upgrade_fees[code];
+        // 租费
+        int rent_fee = rent_fees[code];
+
+        if ("A".equals(mark)) { // A代表空地
+            // 空地处理逻辑
+            processFreePlot1(code, upgrade_fee);
+        } else if ("X".equals(mark)) {// X代表Player1的地，提示是否升级
+            processUpgrade1(code, building, upgrade_fee);
+        } else if ("O".equals(mark)) {// 对手(Player2)的地，提示收租，并判断是否破产
+            processRent1(code, rent_fee);
+        }
+    }
+
+    // 处理玩家1空地
+    private void processFreePlot1(int code, int upgrade_fee) {
+        System.out.println("Player 1 has reached a free plot. ");
+        System.out.println("Would you like to build a house for $50? (y/n) ");
+        // 判断用户资产是否够买
+        if (player1_amount >= upgrade_fee) {
+            String yorn = getChooseInput();
+            if ("y".equals(yorn)) {
+                System.out.println("Congratulations, you just bought a house!");
+                // 资产更新 -50
+                player1_amount -= upgrade_fee;
+                // 地块更新
+                boxes[player1_pos] = "X" + (code + 1);
+            }
+        } else {
+            System.out.println("Unfortunately, you don’t have enough cash to build a house. ");
+        }
+    }
+
+    // 处理玩家1升级情况
+    private void processUpgrade1(int code, String building, int upgrade_fee) {
+        System.out.println("Player 1 has arrived at his " + building.toLowerCase() + ".");
+        // 如果不是酒店（顶级建筑），提示是否升级
+        if (!"Hotel".equals(building)) {
+            // 下一个建筑物
+            String nextLevelBuilding = buildings[code + 1];
+            System.out.println("Would you like to upgrade the " + building.toLowerCase() + " to a "
+                    + nextLevelBuilding.toLowerCase() + " for $" + upgrade_fee + "? (y/n)");
+            String yorn = getChooseInput();
+            if (player1_amount >= upgrade_fee) {// 资金充足
+                if ("y".equals(yorn)) {
+                    System.out.println("Congratulations, you just upgrade your " + building.toLowerCase() + " to "
+                            + nextLevelBuilding.toLowerCase() + "!");
+                    // 资产更新
+                    player1_amount -= upgrade_fee;
+                    // 地块更新
+                    boxes[player1_pos] = "X" + (code + 1);
+                }
+            } else {
+                System.out.println(
+                        "Unfortunately, you don’t have enough cash to upgrade your " + building.toLowerCase() + ". ");
+            }
+        } else {
+            System.out.println("Your building is hotel, can not be upgraded!");
+        }
+    }
+
+    // 处理玩家1到达玩家2地盘，玩家1的钱减少，玩家2的钱增加
+    private void processRent1(int code, int rent_fee) {
+        System.out.println("Uh oh.. You have arrived at a building of your competitor. ");
+        // 收租
+        if (code == 1) {
+            System.out.println("Pfew, it was only a house. You need to pay $" + rent_fee + ". ");
+        } else if (code == 2) {
+            System.out.println("Ouch, it is a villa. You need to pay $" + rent_fee + ". ");
+        } else if (code == 3) {
+            System.out.println("Nooo! It’s a hotel. You need to pay $" + rent_fee + "! ");
+        }
+        // 玩家1资产减少
+        player1_amount -= rent_fee;
+        // 玩家2资产增加
+        player2_amount += rent_fee;
+    }
+
+    // 玩家2进行游戏
+    private void play2() {
+        // 展示游戏板
+        showBoxes();
+        // 展示位置
+        drawPostions();
+        // 展示余额
+        drawBalance();
+        // 扔色子
+        int steps = die();
+
+        // 更新玩家位置
+        int new_pos = player2_pos + steps;
+        player2_pos = new_pos % 9;
+
+        // 输出色子点数和移动到的位置
+        System.out.println("Player 2 throws the die... " + steps + "! ");
+        System.out.println("Player 2 moves to plot " + (player2_pos + 1));
+
+        // 再次经过起点 金额加100，并更新当前位置
+        if (new_pos > 8) {
+            player2_amount += 100; // 增加100
+            System.out.println("Player 2 passed “start” and receives $100!");
+        }
+
+        // 判断地块标志，空地，对手的建筑，自己的建筑
+        String box = boxes[player2_pos];
+        // 取第一位 代表地块归属者 A 空地，X玩家1的地块 O玩家2的地块
+        String mark = String.valueOf(box.charAt(0));
+        // 取第二位,代表建筑物编号0 空地，1 house，2 valli 3 Hotel
+        // char转换为String，然后再转换成Integer
+        int code = Integer.parseInt(String.valueOf(box.charAt(1)));
+
+        // 当前建筑物
+        String building = buildings[code];
+
+        // 升级费用
+        int upgrade_fee = upgrade_fees[code];
+        // 租费
+        int rent_fee = rent_fees[code];
+
+        if ("A".equals(mark)) { // 空地，提示是否购买
+            processFreePlot2(code, upgrade_fee);
+        } else if ("O".equals(mark)) {// 自己的地，提示是否升级
+            processUpgrade2(code, building, upgrade_fee);
+        } else if ("X".equals(mark)) {// 对手的地，提示收租，并判断是否破产
+            processRent2(code, rent_fee);
+        }
+    }
+
+    // 处理玩家2空地
+    private void processFreePlot2(int code, int upgrade_fee) {
+        System.out.println("Player 2 has reached a free plot. ");
+        System.out.println("Would you like to build a house for $50? (y/n) ");
+        // 判断用户资产是否够买
+        if (player2_amount >= upgrade_fee) {
+            String yorn = getChooseInput();
+            if ("y".equals(yorn)) {
+                System.out.println("Congratulations, you just bought a house!");
+                // 资产更新 -50
+                player2_amount -= upgrade_fee;
+                // 地块更新
+                boxes[player2_pos] = "O" + (code + 1);
+            }
+        } else {
+            System.out.println("Unfortunately, you don’t have enough cash to build a house. ");
+        }
+    }
+
+    private void processUpgrade2(int code, String building, int upgrade_fee) {
+        System.out.println("Player 2 has arrived at his " + building.toLowerCase() + ".");
+        // 如果不是酒店（顶级建筑），提示是否升级
+        if (!"Hotel".equals(building)) {
+            // 下一个建筑物
+            String nextLevelBuilding = buildings[code + 1];
+
+            System.out.println("Would you like to upgrade the " + building.toLowerCase() + " to a "
+                    + nextLevelBuilding.toLowerCase() + " for $" + upgrade_fee + "? (y/n)");
+            String yorn = getChooseInput();
+            if (player2_amount >= upgrade_fee) {// 资金充足
+                if ("y".equals(yorn)) {
+                    System.out.println("Congratulations, you just upgrade your " + building.toLowerCase() + " to "
+                            + nextLevelBuilding.toLowerCase() + "!");
+                    // 资产更新
+                    player2_amount -= upgrade_fee;
+                    // 地块更新
+                    boxes[player2_pos] = "O" + (code + 1);
+                }
+            } else {
+                System.out.println(
+                        "Unfortunately, you don’t have enough cash to upgrade your " + building.toLowerCase() + ". ");
+            }
+        } else {
+            System.out.println("Your building is hotel, can not be upgraded!");
+        }
+    }
+
+    // 处理玩家2到达玩家1地盘，玩家1收入增加，玩家2 扣钱
+    private void processRent2(int code, int rent_fee) {
+        System.out.println("Uh oh.. You have arrived at a building of your competitor. ");
+        // 收租
+        if (code == 1) {
+            System.out.println("Pfew, it was only a house. You need to pay $" + rent_fee + ". ");
+        } else if (code == 2) {
+            System.out.println("Ouch, it is a villa. You need to pay $" + rent_fee + ". ");
+        } else if (code == 3) {
+            System.out.println("Nooo! It’s a hotel. You need to pay $" + rent_fee + "! ");
+        }
+        // 玩家1资产增加
+        player1_amount += rent_fee;
+        // 玩家2资产减少
+        player2_amount -= rent_fee;
+    }
+
+    // 判断是否有人胜出，费用小于等于0时，对手获胜
+    private boolean checkWin() {
+        if (player1_amount <= 0) {
+            System.out.println("Player 2 went BUST! ");
+            gameOver = true;
+        }
+
+        if (player2_amount <= 0) {
+            System.out.println("Player 1 went BUST! ");
+            gameOver = true;
+        }
+        return gameOver;
+    }
+
+    // 玩家当前位置
+    private void drawPostions() {
+        System.out.println("Player 1 location: Plot " + (player1_pos + 1));
+        System.out.println("Player 2 location: Plot " + (player2_pos + 1));
+        System.out.println();
+    }
+
+    // 玩家资产
+    private void drawBalance() {
+        System.out.println("Balance player 1: $ " + player1_amount);
+        System.out.println("Balance player 2: $ " + player2_amount);
+        System.out.println();
+    }
+
+    // 掷色子
+    private int die() {
+        Random random = new Random();
+        return random.nextInt(3) + 1;
+    }
+
+    // 获取字符串输入
+    private String getStringInput() {
+        scanner = new Scanner(System.in);
+        String str = scanner.next();
+        return str;
+    }
+
+    // 获取Y or N 输入
+    private String getChooseInput() {
+        while (true) {
+            String yorn = getStringInput();
+            if ("y".equals(yorn) || "n".equals(yorn)) {
+                return yorn;
+            } else {
+                System.out.print("Only y or n is accepted, try again (y/n):");
+            }
+        }
+    }
+}
